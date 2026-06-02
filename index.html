@@ -386,6 +386,29 @@ textarea{resize:vertical;min-height:70px;line-height:1.5}
     </div>
   </div>
   <div class="card">
+    <div class="card-header"><div class="card-icon" style="background:#fff7ed">🔔</div><div class="card-title">Tetapan Notifikasi</div></div>
+    <div class="card-body">
+      <div id="notif-permission-box" style="margin-bottom:12px"></div>
+      <div class="meta-grid">
+        <div class="field-group">
+          <label>Masa Reminder 1</label>
+          <input type="time" id="notif-time-1" value="16:30">
+        </div>
+        <div class="field-group">
+          <label>Masa Reminder 2 (Pilihan)</label>
+          <input type="time" id="notif-time-2" value="">
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" style="flex:none" onclick="saveNotifSettings()">💾 Simpan & Aktifkan</button>
+        <button class="btn btn-secondary" style="flex:none" onclick="testNotif()">🔔 Test Notifikasi</button>
+        <button class="btn btn-secondary" style="flex:none;color:var(--red)" onclick="disableNotif()">✕ Matikan</button>
+      </div>
+      <div id="notif-status" style="margin-top:10px;font-size:12px;color:var(--text-secondary)"></div>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-header"><div class="card-icon" style="background:#f0fdf4">📋</div><div class="card-title">SQL untuk Buat Table</div></div>
     <div class="card-body">
       <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">Jalankan SQL ini dalam Supabase SQL Editor jika belum buat table:</p>
@@ -945,6 +968,195 @@ function copyWA(){
   });
 }
 document.getElementById('wa-modal').addEventListener('click',function(e){if(e.target===this)closeWA();});
+
+
+// ── NOTIFICATIONS ──
+let notifInterval = null;
+let notifAudio = null;
+
+function makeBeep(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.8);
+    // Second beep
+    setTimeout(()=>{
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.frequency.value = 1100;
+      osc2.type = 'sine';
+      gain2.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      osc2.start(ctx.currentTime);
+      osc2.stop(ctx.currentTime + 0.6);
+    }, 300);
+  }catch(e){ console.log('Audio error:', e); }
+}
+
+function showInAppBanner(msg){
+  // Remove existing banner
+  const existing = document.getElementById('notif-banner');
+  if(existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'notif-banner';
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#0f1f3d;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 4px 16px rgba(0,0,0,.3);animation:slideDown .3s ease';
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">🔔</span>
+      <div>
+        <div style="font-weight:600;font-size:14px">${msg}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px">Klik untuk submit laporan harian</div>
+      </div>
+    </div>
+    <button onclick="document.getElementById('notif-banner').remove();switchTab('daily',document.querySelector('.tab-btn'))" style="background:var(--accent);border:none;color:#0f1f3d;padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;white-space:nowrap">Buka Laporan</button>
+  `;
+  document.body.prepend(banner);
+  // Auto dismiss after 30s
+  setTimeout(()=>{ if(document.getElementById('notif-banner')) document.getElementById('notif-banner').remove(); }, 30000);
+}
+
+function fireNotification(title, body){
+  makeBeep();
+  showInAppBanner(title + ' — ' + body);
+  if('Notification' in window && Notification.permission === 'granted'){
+    try{
+      new Notification(title, {
+        body: body,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📋</text></svg>',
+        badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔔</text></svg>',
+        tag: 'cs-reminder',
+        requireInteraction: true
+      });
+    }catch(e){ console.log('Notification error:', e); }
+  }
+}
+
+function checkNotifTime(){
+  const t1 = localStorage.getItem('notif_time_1');
+  const t2 = localStorage.getItem('notif_time_2');
+  const fired = localStorage.getItem('notif_fired_date');
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const now = new Date();
+  const hhmm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  // Reset fired times at midnight
+  if(fired && fired.split('|')[0] !== todayStr){
+    localStorage.removeItem('notif_fired_date');
+  }
+
+  const firedToday = localStorage.getItem('notif_fired_date') || '';
+
+  if(t1 && hhmm === t1 && !firedToday.includes('t1')){
+    fireNotification('⏰ Peringatan Laporan CS', 'Sila submit laporan harian sebelum tutup waktu!');
+    localStorage.setItem('notif_fired_date', todayStr + '|t1' + (firedToday.includes('t2') ? 't2' : ''));
+  }
+  if(t2 && hhmm === t2 && !firedToday.includes('t2')){
+    fireNotification('🔔 Reminder Akhir CS', 'Laporan harian belum dihantar!');
+    localStorage.setItem('notif_fired_date', todayStr + '|' + (firedToday.includes('t1') ? 't1' : '') + 't2');
+  }
+}
+
+async function requestNotifPermission(){
+  if(!('Notification' in window)) return false;
+  if(Notification.permission === 'granted') return true;
+  if(Notification.permission === 'denied') return false;
+  const perm = await Notification.requestPermission();
+  return perm === 'granted';
+}
+
+function updateNotifUI(){
+  const box = document.getElementById('notif-permission-box');
+  const status = document.getElementById('notif-status');
+  if(!box) return;
+
+  const t1 = localStorage.getItem('notif_time_1');
+  const t2 = localStorage.getItem('notif_time_2');
+  const active = !!t1;
+
+  if(!('Notification' in window)){
+    box.innerHTML = '<div style="background:#fff8e6;border:1px solid #fce096;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e">⚠️ Browser anda tidak support notifikasi.</div>';
+    return;
+  }
+
+  const perm = Notification.permission;
+  if(perm === 'denied'){
+    box.innerHTML = '<div style="background:#fdecea;border:1px solid #f5a5a0;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red)">❌ Notifikasi disekat. Pergi Settings browser → benarkan notifikasi untuk laman ini.</div>';
+  } else if(perm === 'granted' && active){
+    box.innerHTML = `<div style="background:var(--green-light);border:1px solid #a3d9b1;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--green)">✅ Notifikasi aktif — Reminder ${t1}${t2?' & '+t2:''}</div>`;
+  } else {
+    box.innerHTML = '<div style="background:#eef4ff;border:1px solid #c7d9f5;border-radius:8px;padding:10px 14px;font-size:12px;color:#2557a7">ℹ️ Tetapkan masa dan klik Simpan & Aktifkan untuk hidupkan notifikasi.</div>';
+  }
+
+  if(status) status.textContent = active ? `Notifikasi aktif: ${t1}${t2 ? ' dan ' + t2 : ''}` : 'Notifikasi tidak aktif';
+}
+
+async function saveNotifSettings(){
+  const t1 = document.getElementById('notif-time-1').value;
+  const t2 = document.getElementById('notif-time-2').value;
+
+  if(!t1){ toast('⚠️ Sila set sekurang-kurangnya Masa Reminder 1'); return; }
+
+  const granted = await requestNotifPermission();
+  if(!granted && 'Notification' in window && Notification.permission !== 'denied'){
+    toast('⚠️ Sila benarkan notifikasi dalam browser'); return;
+  }
+
+  localStorage.setItem('notif_time_1', t1);
+  if(t2) localStorage.setItem('notif_time_2', t2);
+  else localStorage.removeItem('notif_time_2');
+
+  startNotifChecker();
+  updateNotifUI();
+  toast('✅ Notifikasi diaktifkan!');
+}
+
+function disableNotif(){
+  localStorage.removeItem('notif_time_1');
+  localStorage.removeItem('notif_time_2');
+  localStorage.removeItem('notif_fired_date');
+  if(notifInterval){ clearInterval(notifInterval); notifInterval = null; }
+  updateNotifUI();
+  toast('🔕 Notifikasi dimatikan');
+}
+
+function testNotif(){
+  fireNotification('🔔 Test Notifikasi IhsanKu CS', 'Ini adalah test — notifikasi berfungsi dengan baik!');
+  toast('🔔 Test notifikasi dihantar!');
+}
+
+function startNotifChecker(){
+  if(notifInterval) clearInterval(notifInterval);
+  notifInterval = setInterval(checkNotifTime, 30000); // check every 30s
+  checkNotifTime(); // check immediately
+}
+
+// CSS animation for banner
+const notifStyle = document.createElement('style');
+notifStyle.textContent = '@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}';
+document.head.appendChild(notifStyle);
+
+// Init notifications on load
+(function initNotif(){
+  const t1 = localStorage.getItem('notif_time_1');
+  const t2 = localStorage.getItem('notif_time_2');
+  if(document.getElementById('notif-time-1') && t1) document.getElementById('notif-time-1').value = t1;
+  if(document.getElementById('notif-time-2') && t2) document.getElementById('notif-time-2').value = t2;
+  if(t1) startNotifChecker();
+  setTimeout(updateNotifUI, 500);
+})();
+
 
 dRecalc();
 </script>
