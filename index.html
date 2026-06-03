@@ -142,11 +142,13 @@ textarea{resize:vertical;min-height:70px;line-height:1.5}
         <div class="field-group"><label>Tarikh</label><input type="date" id="d-date"></div>
         <div class="field-group"><label>Nama Staf CS</label><input type="text" id="d-name" placeholder="Nama penuh"></div>
         <div class="field-group"><label>Shift</label>
-          <select id="d-shift">
-            <option>Pagi (8:30am – 1:00pm)</option>
-            <option>Petang (1:00pm – 5:30pm)</option>
-            <option selected>Penuh (8:30am – 5:30pm)</option>
+          <select id="d-shift" onchange="toggleCustomShift(this)">
+            <option>Pagi (9:00am – 1:00pm)</option>
+            <option>Petang (1:00pm – 5:00pm)</option>
+            <option selected>Penuh (9:00am – 5:00pm)</option>
+            <option value="custom">✏️ Custom...</option>
           </select>
+          <input type="text" id="d-shift-custom" placeholder="cth: 10:00am – 3:00pm" style="display:none;margin-top:6px">
         </div>
       </div>
     </div>
@@ -586,6 +588,22 @@ function dRecalc(){
     const el=row.querySelector('.rate-badge');el.textContent=rate!==null?rate+'%':'—';el.className='rate-badge '+rc(rate);
   });
 }
+function toggleCustomShift(sel){
+  const custom = document.getElementById('d-shift-custom');
+  if(sel.value === 'custom'){
+    custom.style.display = 'block';
+    custom.focus();
+  } else {
+    custom.style.display = 'none';
+  }
+}
+function getShiftValue(){
+  const sel = document.getElementById('d-shift');
+  if(sel.value === 'custom'){
+    return document.getElementById('d-shift-custom').value.trim() || 'Custom';
+  }
+  return sel.value;
+}
 function dReset(){
   document.getElementById('d-name').value='';document.getElementById('d-notes').value='';
   document.getElementById('d-shift').selectedIndex=2;
@@ -601,7 +619,7 @@ async function dSaveOnly(){
   const rows=dGetRows();
   const rec={
     report_date:dateVal,staff_name:name,
-    shift:document.getElementById('d-shift').value,
+    shift:getShiftValue(),
     notes:document.getElementById('d-notes').value.trim()||null,
     wa1_masuk:rows[0].masuk,wa1_engaged:rows[0].engaged,
     wa2_masuk:rows[1].masuk,wa2_engaged:rows[1].engaged,
@@ -872,7 +890,7 @@ function rateEmoji(r){if(r===null)return'⚪';if(r>=90)return'🟢';if(r>=70)ret
 function buildWADaily(){
   const name=document.getElementById('d-name').value.trim()||'—';
   const dateVal=document.getElementById('d-date').value;
-  const shift=document.getElementById('d-shift').value;
+  const shift=getShiftValue();
   const notes=document.getElementById('d-notes').value.trim();
   const rows=dGetRows();
   const tM=rows.reduce((s,r)=>s+r.masuk,0),tE=rows.reduce((s,r)=>s+r.engaged,0);
