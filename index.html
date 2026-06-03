@@ -156,11 +156,12 @@ textarea{resize:vertical;min-height:70px;line-height:1.5}
     <table class="ch-table">
       <thead><tr><th>Saluran</th><th>Masuk</th><th>Engaged</th><th>Rate</th></tr></thead>
       <tbody id="d-tbody">
-        <tr data-ch="wa1"><td><div class="ch-label"><div class="ch-dot" style="background:#3b82f6"></div><div><div class="ch-name">CS Official</div><div class="ch-type">+6011-2700 2003</div></div></div></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><span class="rate-badge rn">—</span></td></tr>
-        <tr data-ch="wa2"><td><div class="ch-label"><div class="ch-dot" style="background:#f59e0b"></div><div><div class="ch-name">CS Unofficial</div><div class="ch-type">+6011-1319 0312</div></div></div></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><span class="rate-badge rn">—</span></td></tr>
-        <tr data-ch="wa3"><td><div class="ch-label"><div class="ch-dot" style="background:#22c55e"></div><div><div class="ch-name">CS Fidyah</div><div class="ch-type">+6011-1319 0310</div></div></div></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><span class="rate-badge rn">—</span></td></tr>
-        <tr data-ch="em1"><td><div class="ch-label"><div class="ch-dot" style="background:#a855f7"></div><div><div class="ch-name">salam@ihsanku.org</div><div class="ch-type">Rasmi & Surat-menyurat</div></div></div></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><span class="rate-badge rn">—</span></td></tr>
-        <tr data-ch="em2"><td><div class="ch-label"><div class="ch-dot" style="background:#ec4899"></div><div><div class="ch-name">pertubuhanihsanmadani@gmail.com</div><div class="ch-type">Backup</div></div></div></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><span class="rate-badge rn">—</span></td></tr>
+        <tr data-ch="wa1"><td><div class="ch-label"><div class="ch-dot" style="background:#3b82f6"></div><div><div class="ch-name">WhatsApp 1</div><div class="ch-type">Pertanyaan Umum</div></div></div></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><span class="rate-badge rn">—</span></td></tr>
+        <tr data-ch="wa2"><td><div class="ch-label"><div class="ch-dot" style="background:#f59e0b"></div><div><div class="ch-name">WhatsApp 2</div><div class="ch-type">Aduan & Sokongan</div></div></div></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><span class="rate-badge rn">—</span></td></tr>
+        <tr data-ch="wa3"><td><div class="ch-label"><div class="ch-dot" style="background:#22c55e"></div><div><div class="ch-name">WhatsApp 3</div><div class="ch-type">Program & Pendaftaran</div></div></div></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><span class="rate-badge rn">—</span></td></tr>
+        <tr data-ch="wa4"><td><div class="ch-label"><div class="ch-dot" style="background:#06b6d4"></div><div><div class="ch-name">WhatsApp 4</div><div class="ch-type">Pertanyaan Umum</div></div></div></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><span class="rate-badge rn">—</span></td></tr>
+        <tr data-ch="em1"><td><div class="ch-label"><div class="ch-dot" style="background:#a855f7"></div><div><div class="ch-name">Email 1</div><div class="ch-type">Rasmi & Surat-menyurat</div></div></div></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><span class="rate-badge rn">—</span></td></tr>
+        <tr data-ch="em2"><td><div class="ch-label"><div class="ch-dot" style="background:#ec4899"></div><div><div class="ch-name">Email 2</div><div class="ch-type">Laporan & Maklumbalas</div></div></div></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><input class="num-input" type="number" min="0" value="0" oninput="dRecalc()"></td><td><span class="rate-badge rn">—</span></td></tr>
         <tr class="total-row"><td><strong>JUMLAH</strong></td><td id="d-totM">0</td><td id="d-totE">0</td><td><span class="rate-badge rn" id="d-totR">—</span></td></tr>
       </tbody>
     </table>
@@ -440,10 +441,10 @@ CREATE POLICY "Allow all" ON cs_daily_reports
 <script>
 // ── CONSTANTS ──
 const CH=[
-  {key:'wa1',name:'CS Official',type:'+6011-2700 2003',color:'#3b82f6'},
-  {key:'wa2',name:'CS Unofficial',type:'+6011-1319 0312',color:'#f59e0b'},
-  {key:'wa3',name:'CS Fidyah',type:'+6011-1319 0310',color:'#22c55e'},
-   {key:'wa4',name:'Ihsan Korban',type:'+6011-1319 0310',color:'#23c55e'},
+  {key:'wa1',name:'WhatsApp 1',type:'Pertanyaan Umum',color:'#3b82f6'},
+  {key:'wa2',name:'WhatsApp 2',type:'Aduan & Sokongan',color:'#f59e0b'},
+  {key:'wa3',name:'WhatsApp 3',type:'Program & Pendaftaran',color:'#22c55e'},
+  {key:'wa4',name:'WhatsApp 4',type:'Pertanyaan Umum',color:'#06b6d4'},
   {key:'em1',name:'Email 1',type:'Rasmi & Surat-menyurat',color:'#a855f7'},
   {key:'em2',name:'Email 2',type:'Laporan & Maklumbalas',color:'#ec4899'},
 ];
@@ -605,8 +606,9 @@ async function dSaveOnly(){
     wa1_masuk:rows[0].masuk,wa1_engaged:rows[0].engaged,
     wa2_masuk:rows[1].masuk,wa2_engaged:rows[1].engaged,
     wa3_masuk:rows[2].masuk,wa3_engaged:rows[2].engaged,
-    em1_masuk:rows[3].masuk,em1_engaged:rows[3].engaged,
-    em2_masuk:rows[4].masuk,em2_engaged:rows[4].engaged,
+    wa4_masuk:rows[3].masuk,wa4_engaged:rows[3].engaged,
+    em1_masuk:rows[4].masuk,em1_engaged:rows[4].engaged,
+    em2_masuk:rows[5].masuk,em2_engaged:rows[5].engaged,
   };
   const btn=document.getElementById('btn-save');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Menyimpan...';
@@ -796,6 +798,7 @@ function mapChFromRec(r){
     {masuk:r.wa1_masuk||0,engaged:r.wa1_engaged||0},
     {masuk:r.wa2_masuk||0,engaged:r.wa2_engaged||0},
     {masuk:r.wa3_masuk||0,engaged:r.wa3_engaged||0},
+    {masuk:r.wa4_masuk||0,engaged:r.wa4_engaged||0},
     {masuk:r.em1_masuk||0,engaged:r.em1_engaged||0},
     {masuk:r.em2_masuk||0,engaged:r.em2_engaged||0},
   ];
@@ -819,12 +822,12 @@ function renderAgg(records,prefix,showDays=false){
 }
 
 // ── FIX 4: CSV — use proper \n not literal newlines ──
-const CSV_HDR='Tarikh,Nama Staf,Shift,WA1 Masuk,WA1 Engaged,WA2 Masuk,WA2 Engaged,WA3 Masuk,WA3 Engaged,EM1 Masuk,EM1 Engaged,EM2 Masuk,EM2 Engaged,Jumlah Masuk,Jumlah Engaged,Engage Rate,Catatan';
+const CSV_HDR='Tarikh,Nama Staf,Shift,WA1 Masuk,WA1 Engaged,WA2 Masuk,WA2 Engaged,WA3 Masuk,WA3 Engaged,WA4 Masuk,WA4 Engaged,EM1 Masuk,EM1 Engaged,EM2 Masuk,EM2 Engaged,Jumlah Masuk,Jumlah Engaged,Engage Rate,Catatan';
 function makeCSVRow(r){
   const rows=mapChFromRec(r);
   const tM=rows.reduce((s,c)=>s+c.masuk,0),tE=rows.reduce((s,c)=>s+c.engaged,0);
   const rt=tM>0?Math.round(tE/tM*100)+'%':'—';
-  return [r.report_date,`"${r.staff_name}"`,`"${r.shift||''}"`,r.wa1_masuk,r.wa1_engaged,r.wa2_masuk,r.wa2_engaged,r.wa3_masuk,r.wa3_engaged,r.em1_masuk,r.em1_engaged,r.em2_masuk,r.em2_engaged,tM,tE,rt,`"${(r.notes||'').replace(/"/g,'""')}"`].join(',');
+  return [r.report_date,`"${r.staff_name}"`,`"${r.shift||''}"`,r.wa1_masuk,r.wa1_engaged,r.wa2_masuk,r.wa2_engaged,r.wa3_masuk,r.wa3_engaged,r.wa4_masuk||0,r.wa4_engaged||0,r.em1_masuk,r.em1_engaged,r.em2_masuk,r.em2_engaged,tM,tE,rt,`"${(r.notes||'').replace(/"/g,'""')}"`].join(',');
 }
 function downloadCSV(rows,filename){
   if(!rows||!rows.length){toast('⚠️ Tiada data');return;}
