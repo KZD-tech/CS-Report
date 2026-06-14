@@ -366,8 +366,8 @@ textarea{resize:vertical;min-height:70px;line-height:1.5}
   <div style="background:#e6f7ee;border:1px solid #a3d9b1;border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
     <span style="font-size:20px">✅</span>
     <div>
-      <div style="font-weight:600;color:#1a7a4a;font-size:14px">Supabase Tersambung</div>
-      <div style="font-size:12px;color:#2d8a50;margin-top:2px">Database dikonfigurasi terus dalam sistem.</div>
+      <div style="font-weight:600;color:#1a7a4a;font-size:14px">Neon DB Tersambung</div>
+      <div style="font-size:12px;color:#2d8a50;margin-top:2px">Cloudflare Worker → Neon PostgreSQL</div>
     </div>
   </div>
   <div class="card">
@@ -376,7 +376,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.5}
       <div style="display:flex;flex-direction:column;gap:8px">
         <div style="display:flex;gap:10px;align-items:center">
           <span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;width:80px">URL</span>
-          <span style="font-size:12px;color:var(--text);font-family:'DM Mono',monospace;background:#f0f2f5;padding:4px 10px;border-radius:6px">https://slrlxpzruetnpfhwmwdz.supabase.co</span>
+          <span style="font-size:12px;color:var(--text);font-family:'DM Mono',monospace;background:#f0f2f5;padding:4px 10px;border-radius:6px">cs-report-worker.marketing-kaizendigital.workers.dev</span>
         </div>
         <div style="display:flex;gap:10px;align-items:center">
           <span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;width:80px">Status</span>
@@ -414,23 +414,24 @@ textarea{resize:vertical;min-height:70px;line-height:1.5}
   <div class="card">
     <div class="card-header"><div class="card-icon" style="background:#f0fdf4">📋</div><div class="card-title">SQL untuk Buat Table</div></div>
     <div class="card-body">
-      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">Jalankan SQL ini dalam Supabase SQL Editor jika belum buat table:</p>
-      <div class="code-block" id="sql-block">CREATE TABLE cs_daily_reports (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">Jalankan SQL ini dalam Neon SQL Editor jika belum buat table:</p>
+      <div class="code-block" id="sql-block">CREATE TABLE IF NOT EXISTS cs_daily_reports (
+  id          uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   report_date date NOT NULL,
-  staff_name text NOT NULL,
-  shift text,
-  wa1_masuk int DEFAULT 0, wa1_engaged int DEFAULT 0,
-  wa2_masuk int DEFAULT 0, wa2_engaged int DEFAULT 0,
-  wa3_masuk int DEFAULT 0, wa3_engaged int DEFAULT 0,
-  em1_masuk int DEFAULT 0, em1_engaged int DEFAULT 0,
-  em2_masuk int DEFAULT 0, em2_engaged int DEFAULT 0,
-  notes text,
-  created_at timestamptz DEFAULT now()
+  staff_name  text NOT NULL,
+  shift       text,
+  wa1_masuk   int DEFAULT 0, wa1_engaged int DEFAULT 0,
+  wa2_masuk   int DEFAULT 0, wa2_engaged int DEFAULT 0,
+  wa3_masuk   int DEFAULT 0, wa3_engaged int DEFAULT 0,
+  wa4_masuk   int DEFAULT 0, wa4_engaged int DEFAULT 0,
+  em1_masuk   int DEFAULT 0, em1_engaged int DEFAULT 0,
+  em2_masuk   int DEFAULT 0, em2_engaged int DEFAULT 0,
+  notes       text,
+  created_at  timestamptz DEFAULT now()
 );
-ALTER TABLE cs_daily_reports ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all" ON cs_daily_reports
-  FOR ALL USING (true) WITH CHECK (true);</div>
+
+CREATE INDEX IF NOT EXISTS idx_report_date ON cs_daily_reports(report_date DESC);
+CREATE INDEX IF NOT EXISTS idx_staff_name  ON cs_daily_reports(staff_name);</div>
       <button class="btn btn-secondary" style="margin-top:8px;font-size:12px" onclick="copySQL()">📋 Copy SQL</button>
     </div>
   </div>
@@ -451,42 +452,36 @@ const CH=[
   {key:'em2',name:'pertubuhanihsanmadani@gmail.com',type:'Backup',color:'#ec4899'},
 ];
 
-// ── FIX 1: Hardcoded credentials — no localStorage needed ──
-const SB_URL='https://slrlxpzruetnpfhwmwdz.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNscmx4cHpydWV0bnBmaHdtd2R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNjgzODEsImV4cCI6MjA5NTk0NDM4MX0.IzVJT5VZ3ChwBQwiBGE0tKZVmgejwzDW8DgCRhKJuz0';
+// ── NEON CONFIG via Cloudflare Worker ──
+// Tukar URL ni kepada Worker URL anda selepas deploy
+const API_URL = 'https://cs-report-worker.marketing-kaizendigital.workers.dev';
 
-// ── FIX 2: Clean sbFetch — no header conflict ──
-async function sbFetch(path, method='GET', body=null, extraHeaders={}){
-  const headers={
-    'apikey': SB_KEY,
-    'Authorization': 'Bearer '+SB_KEY,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=representation',
-    ...extraHeaders
-  };
-  const opts={method, headers};
-  if(body) opts.body=JSON.stringify(body);
-  const res=await fetch(SB_URL+'/rest/v1/'+path, opts);
+async function apiFetch(path, method='GET', body=null){
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_URL + path, opts);
   if(!res.ok){
-    const err=await res.text();
-    throw new Error(err);
+    const err = await res.json().catch(()=>({error: res.statusText}));
+    throw new Error(err.error || 'API error');
   }
-  return res.status===204 ? null : res.json();
+  return res.status === 204 ? null : res.json();
 }
 
 async function insertRecord(rec){
-  return sbFetch('cs_daily_reports','POST',rec);
+  return apiFetch('/records', 'POST', rec);
 }
 
-async function fetchRecords(from,to){
-  let q='cs_daily_reports?order=report_date.desc&limit=1000';
-  if(from) q+=`&report_date=gte.${from}`;
-  if(to)   q+=`&report_date=lte.${to}`;
-  return sbFetch(q);
+async function fetchRecords(from, to){
+  let q = '/records';
+  const params = [];
+  if(from) params.push(`from=${from}`);
+  if(to)   params.push(`to=${to}`);
+  if(params.length) q += '?' + params.join('&');
+  return apiFetch(q);
 }
 
 async function deleteRecord(id){
-  return sbFetch(`cs_daily_reports?id=eq.${id}`,'DELETE');
+  return apiFetch(`/records/${id}`, 'DELETE');
 }
 
 // ── FIX 3: checkConn with proper async handling ──
@@ -495,13 +490,13 @@ async function checkConn(showInSetup=false){
   badge.className='conn-badge conn-loading';
   badge.textContent='⏳ Connecting...';
   try{
-    await sbFetch('cs_daily_reports?limit=1');
+    await apiFetch('/health');
     badge.className='conn-badge conn-ok';
     badge.textContent='✅ Connected';
     if(showInSetup){
       const s=document.getElementById('setup-status');
       if(s){s.textContent='✅ Sambungan OK';s.style.color='var(--green)';}
-      toast('✅ Sambungan Supabase OK!');
+      toast('✅ Sambungan Neon DB OK!');
     }
   }catch(e){
     badge.className='conn-badge conn-err';
