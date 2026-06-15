@@ -531,7 +531,15 @@ loadStaffNames();
 
 // ── HELPERS ──
 function rc(v){if(v===null)return'rn';if(v>=90)return'rh';if(v>=70)return'rm';return'rl';}
-function fmtDate(s){const d=new Date(s+'T00:00:00');return d.toLocaleDateString('ms-MY',{day:'numeric',month:'short',year:'numeric'});}
+function fmtDate(s){
+  if(!s) return '—';
+  // Handle berbagai format: '2026-06-15', '2026-06-15T00:00:00Z', '2026-06-15T00:00:00.000Z'
+  const str = String(s).substring(0, 10); // ambil 10 char pertama: YYYY-MM-DD
+  const parts = str.split('-');
+  if(parts.length !== 3) return s;
+  const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+  return d.toLocaleDateString('ms-MY',{day:'numeric',month:'short',year:'numeric'});
+}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
 function copySQL(){navigator.clipboard.writeText(document.getElementById('sql-block').textContent);toast('📋 SQL disalin!');}
 
